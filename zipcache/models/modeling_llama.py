@@ -2254,3 +2254,90 @@ class LlamaForSequenceClassification(LlamaPreTrainedModel):
             hidden_states=transformer_outputs.hidden_states,
             attentions=transformer_outputs.attentions,
         )
+
+# class StopOnTokens(StoppingCriteria):
+#     def __init__(self, stop_sequences_ids):
+#         # stop_sequences_ids is a list of lists of token IDs
+#         self.stop_sequences_ids = stop_sequences_ids
+
+#     def __call__(self, input_ids, scores, **kwargs):
+#         for stop_sequence_ids in self.stop_sequences_ids:
+#             if len(stop_sequence_ids) > len(input_ids[0]):
+#                 continue
+#             if (input_ids[0][-len(stop_sequence_ids):] == torch.tensor(
+#                 stop_sequence_ids, device=input_ids.device
+#             )).all():
+#                 return True
+#         return False
+
+# class LMEvalMyLlamaForCausalLM(LM):
+#     def __init__(self, model_name_or_path, compress_config):
+#         # Initialize the tokenizer and model
+#         self.tokenizer = AutoTokenizer.from_pretrained(
+#             model_name_or_path, use_fast=True, cache_dir=model_name_or_path, local_files_only=True
+#         )
+#         self.model = MyLlamaForCausalLM.from_pretrained(
+#             model_name_or_path,
+#             cache_dir=model_name_or_path,
+#             compress_config=compress_config,
+#             torch_dtype=torch.float16,
+#             local_files_only=True
+#         )
+#         self.model.half().eval().cuda()
+
+#     def generate_until(self, requests):
+#         responses = []
+#         for request in requests:
+#             input_str, gen_params = request.args
+#             until = gen_params.pop("until", None)
+#             max_gen_toks = gen_params.pop("max_gen_toks", 128)
+
+#             # Tokenize the input string
+#             input_ids = self.tokenizer.encode(input_str, return_tensors="pt")
+#             if torch.cuda.is_available():
+#                 input_ids = input_ids.cuda()
+
+#             # Prepare stopping criteria if 'until' is specified
+#             stopping_criteria = None
+#             if until is not None:
+#                 stop_sequences_ids = [
+#                     self.tokenizer.encode(stop_sequence, add_special_tokens=False)
+#                     for stop_sequence in until
+#                 ]
+#                 stopping_criteria = StoppingCriteriaList(
+#                     [StopOnTokens(stop_sequences_ids)]
+#                 )
+
+#             # Prepare generation arguments
+#             generation_kwargs = {
+#                 "input_ids": input_ids,
+#                 "max_new_tokens": max_gen_toks,
+#                 "stopping_criteria": stopping_criteria,
+#                 "pad_token_id": self.tokenizer.eos_token_id,
+#             }
+#             # Include any additional generation parameters
+#             generation_kwargs.update(gen_params)
+
+#             # Generate the output
+#             with torch.no_grad():
+#                 output_sequences = self.model.generate(**generation_kwargs)
+
+#             # Decode the generated tokens
+#             output_text = self.tokenizer.decode(
+#                 output_sequences[0], skip_special_tokens=True
+#             )
+
+#             # Extract the generated text (excluding the input prompt)
+#             generated_text = output_text[len(input_str) :]
+
+#             # Truncate at the first occurrence of any 'until' string
+#             if until is not None:
+#                 for stop_string in until:
+#                     index = generated_text.find(stop_string)
+#                     if index != -1:
+#                         generated_text = generated_text[: index + len(stop_string)]
+#                         break
+#                 output_text = input_str + generated_text
+
+#             responses.append(output_text)
+#         return responses

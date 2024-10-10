@@ -17,7 +17,7 @@ compress_config["v_unimportant_ratio"] = 0.4
 compress_config["stream"] = True # streaming-gear set to true to perform better efficiency
 compress_config["streaming_gap"] = 100 # re-compress every N iteration
 
-MODEL_PATH='/data/models--meta-llama--Meta-Llama-3-8B/snapshots/1460c22666392e470910ce3d44ffeb2ab7dbd4df/' ## your llama path here
+MODEL_PATH='/data/models/meta-llama--Meta-Llama-3-8B-Instruct' ## your llama path here
 
 tokenizer = AutoTokenizer.from_pretrained(
     MODEL_PATH, use_fast=True, cache_dir=MODEL_PATH, local_files_only=True
